@@ -1,0 +1,95 @@
+#include <stdio.h>
+#include <mpi.h>
+#include <stdlib.h>
+#include <time.h>
+
+double get_input(int rank, int size);
+
+int main(void){
+
+  int rank;
+  int size;
+
+  srand(time(NULL)); 
+
+  MPI_Init(NULL, NULL); //argc argv
+  MPI_Comm_size(MPI_COMM_WORLD, &size); //gets size 
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank); //gets rank 
+
+  get_input(rank,size);
+
+  MPI_Finalize();
+
+  return 0;
+}
+
+
+double get_input(int rank, int size){
+
+  double toss; //the specific toss we are on
+  double distance; //distance squared
+  double number_in_circle; //number of times it hits the circl
+  double chunk_size;
+  int num_of_throws;
+  double pi_estimate;
+  double x;
+  double y;
+  
+  printf("Enter number of throws\n");
+  scanf("%d", &num_of_throws);
+  
+
+  //  chunk_size = num_of_throws/(size-1);
+
+  // as they'll actually need, i.e. (vect_length / number of processes)
+  // elements
+
+  // Then distribute necessary data...
+
+  // Do the computation...
+
+
+  // Collect results...
+
+
+  printf("num of throws: %d\n", num_of_throws);
+  
+  if(rank == 0){
+    MPI_Bcast(&num_of_throws,1,MPI_INT,0,MPI_COMM_WORLD); 
+  }    
+  if(rank !=0){ //how do I cycle through the ranks? currently it skips this if 
+    int i;
+    for(i = 1; i < size; i++){
+      for(toss = 0; toss < num_of_throws; toss++){
+	x = (double)rand()/(double)RAND_MAX;
+	y = (double)rand()/(double)RAND_MAX;
+	printf("\nx: %f\n", x);
+	printf("y: %f\n", y);
+	distance = (x*x) + (y*y);
+	printf("distance: %f\n",distance);
+	printf("toss: %f\n", toss);
+
+	if (distance <= 1){
+	  number_in_circle++;
+	  printf("number_in_circle: %f\n",number_in_circle);
+	}  
+      }
+    }
+  }
+  
+  pi_estimate = 4 * number_in_circle/num_of_throws;
+  printf("pi_estimate: %f\n", pi_estimate);
+  
+  return pi_estimate;
+}
+
+  
+// as they'll actually need, i.e. (vect_length / number of processes)
+// elements
+
+// Then distribute necessary data...
+
+// Do the computation...
+
+
+// Collect results...

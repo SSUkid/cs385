@@ -1,0 +1,36 @@
+#include<omp.h>
+#include<math.h>
+#include<time.h>
+#include<stdio.h>
+
+int main(){
+
+  omp_lock_t lock[100];
+  int num;
+  double math;
+  int i;
+  int j;
+  printf("enter num: ");
+  scanf("%d\n",&num);
+  printf("num is: %d\n", num);
+
+  double time_spent = 0;
+  srand(time(NULL));
+  clock_t begin, end;
+  begin = clock();
+  // omp_set_num_threads(8);
+
+  //  #pragma omp parallel for
+  for(i = 0; i<num; i++){
+    //    #pragma omp parallel for
+    for(j = 0; j < 1000000; j++){
+    }
+  }
+
+  end = clock();
+  time_spent = (double)(end - begin);
+  printf("time: %lf\n", time_spent);
+
+
+  return 0;
+}

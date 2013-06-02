@@ -1,0 +1,75 @@
+//CORY BEKKER
+#include<iostream>
+#include<vector>
+#include<omp.h>
+#include"tour.h"
+using namespace std;
+
+int main(int argc, char* argv[]){
+  
+  if(argc != 2){
+    cout<<"needs command line arg: ./program.out [number of threads]\n";
+    return 0;
+  }
+  
+  int num_threads;
+  num_threads = strtol(argv[1], NULL, 10);
+  omp_set_num_threads(num_threads); //Sets the thread count to the users input
+
+  Tour hometown;
+  Tour tour;
+  Tour best_tour(1000000);
+  vector<Tour>stack; //The stack is the tree and its nodes!
+  vector<Tour>thread_stack; //a stack for a specific thread
+  unsigned int city = 0;
+  
+  stack.push_back(hometown); //Tour that visits only the hometown
+  while(!stack.empty()) {
+    if(num_threads <= stack.size()) break; //if there are enough tours for each thread
+    tour.set_tour(stack.back());
+    stack.pop_back();
+    //if the current tour is the best, then change it to best_tour
+    if(tour.get_num_cities() == num_cities) { 
+      if(tour.better_than(best_tour))
+	best_tour.set_tour(tour);
+    }
+    else {
+      for(city = 1; city < num_cities; city++){ //cycles through each city
+	if(tour.add_city(city, best_tour)){	//adds a city to the current tour if it isnt bigger than the best tour
+	  stack.push_back(tour);//adds the tour to the stack aka adds a new leaf node to the tree
+	  tour.remove_last();//removes added leaf node so that way we can go back up to the tree and try the next leaf node
+	}
+      }
+    }
+  }
+  
+  //split the tours in the stack across threads by splitting up the stacks different tours
+#pragma omp parallel for private(thread_stack,tour,city)
+  for(int i = 0; i < stack.size(); i++){
+    thread_stack.push_back(stack[i]);///<--------------each thread gets its own stack
+    while(!thread_stack.empty()) {
+      tour.set_tour(thread_stack.back());
+      thread_stack.pop_back();
+      //if the current tour is the best, then change it to best_tour
+      if(tour.get_num_cities() == num_cities) { 
+	//best_tour is a shared variable and all threads must be able to update it, but only one at a time
+#pragma omp critical 
+	{
+	  if(tour.better_than(best_tour))
+	    best_tour.set_tour(tour);
+	} 
+      }
+      else {
+	for(city = 1; city < num_cities; city++){ 
+	  if(tour.add_city(city, best_tour)){	
+	    thread_stack.push_back(tour);
+	    tour.remove_last();
+	  }
+	}
+      }
+    }
+  }
+  best_tour.print_best();
+  return 0;
+}
+
